@@ -100,8 +100,6 @@ OPENWEATHERMAP_API_KEY=your_weather_key_here
 |----------|---------|----------|
 | **[📋 Setup Guide](./docs/SETUP.md)** | Complete installation and configuration | All users |
 | **[🎓 Step-by-Step Tutorial](./docs/TUTORIAL.md)** | Detailed code walkthrough with highlights | Developers |
-| **[🔧 MCP Protocol Guide](./docs/MCP_CONCEPTS.md)** | Deep dive into MCP internals | Advanced users |
-| **[🌐 Deployment Guide](./docs/DEPLOYMENT.md)** | Production deployment patterns | DevOps teams |
 
 ---
 
@@ -320,6 +318,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ready to start your MCP journey?**
 
-[📋 Setup Guide](./docs/SETUP.md) → [🎓 Tutorial](./docs/TUTORIAL.md) → [🚀 Build Something Amazing](./docs/DEPLOYMENT.md)
+[📋 Setup Guide](./docs/SETUP.md) → [🎓 Tutorial](./docs/TUTORIAL.md) → [🚀 Build Something Amazing](#-next-steps)
 
 </div>
