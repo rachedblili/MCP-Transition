@@ -146,9 +146,13 @@ MCP-Transition/
 
 ### Stage 1: Naive Implementation
 **File:** `naive_agent.py`
-- Basic Pydantic AI agent with hardcoded tools
-- Synchronous execution with async workarounds
+- Basic **PydanticAI** agent with hardcoded tools
+- Synchronous execution with async workarounds  
 - Direct API calls without abstraction
+
+**Why PydanticAI?** I chose PydanticAI as the starting framework because it provides the cleanest, non-vendor-specific approach to building AI agents. Unlike framework-specific solutions, PydanticAI offers excellent separation between conversation management and tooling, making it ideal for demonstrating MCP integration patterns.
+
+**Alternative Frameworks:** This is just one of many possible implementations! For the same agent implemented across **8 different frameworks** (LangChain, LangGraph, CrewAI, Llama-Index, OpenAI Assistants, Anthropic, and Atomic Agents), check out my [**Agent Framework Comparison Repository**](https://github.com/rachedblili/AgentExamples). You can use any of these as your starting point for MCP integration.
 
 **Key Concepts:** Basic agent architecture, tool registration, conversation flow
 
