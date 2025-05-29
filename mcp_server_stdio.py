@@ -1,262 +1,83 @@
 """
-MCP Server using SSE (Server-Sent Events) transport with OpenWeatherMap API
+MCP Server that exposes date and web search tools.
 
-This server demonstrates:
-1. SSE transport instead of stdio (HTTP-based, can be deployed remotely)
-2. Integration with external REST APIs (OpenWeatherMap)
-3. Real-world useful tools (weather data)
-4. Proper error handling for API failures
-
-Key differences from stdio server:
-- Runs as HTTP server on localhost:8000
-- Uses Server-Sent Events for real-time communication
-- Can handle multiple concurrent clients
-- Better suited for production deployment
-
-Weather tools provided:
-- current_weather: Get current weather for a city
-- weather_forecast: Get 5-day weather forecast
-- weather_by_coordinates: Get weather by lat/lon coordinates
+This server wraps the date_tool and web_search functions from the cleaned agent
+and exposes them through the Model Context Protocol (MCP).
 """
 
 import os
-import asyncio
 import json
-import aiohttp
-from typing import Any, Dict, List
+import asyncio
+from datetime import date
+from typing import Any, Sequence
+
 from dotenv import load_dotenv
+from tavily import TavilyClient
 
 import mcp.types as types
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
-
-# SSE server imports
-from mcp.server.sse import SseServerTransport
-from starlette.applications import Starlette
-from starlette.routing import Route
-from starlette.responses import Response
+import mcp.server.stdio
 
 # Load environment variables
 load_dotenv()
 
-# Get OpenWeatherMap API key
-OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
-if not OPENWEATHERMAP_API_KEY:
-    raise ValueError("OPENWEATHERMAP_API_KEY environment variable is required")
+# Initialize Tavily client
+tavily_api_key = os.getenv("TAVILY_API_KEY")
+if not tavily_api_key:
+    raise ValueError("TAVILY_API_KEY environment variable is required")
 
-# OpenWeatherMap API base URL
-WEATHER_API_BASE = "https://api.openweathermap.org/data/2.5"
+tavily_client = TavilyClient(api_key=tavily_api_key)
 
 # Create the MCP server
-server = Server("weather-tools-sse")
-
-
-class WeatherAPIError(Exception):
-    """Custom exception for weather API errors."""
-    pass
-
-
-async def make_weather_request(endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Make a request to the OpenWeatherMap API.
-
-    Args:
-        endpoint: API endpoint (e.g., "weather", "forecast")
-        params: Query parameters for the API call
-
-    Returns:
-        API response as dictionary
-
-    Raises:
-        WeatherAPIError: If API call fails
-    """
-    # Add API key to parameters
-    params["appid"] = OPENWEATHERMAP_API_KEY
-    params["units"] = "metric"  # Use Celsius by default
-
-    url = f"{WEATHER_API_BASE}/{endpoint}"
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    return await response.json()
-                elif response.status == 404:
-                    raise WeatherAPIError("City not found. Please check the city name.")
-                elif response.status == 401:
-                    raise WeatherAPIError("Invalid API key.")
-                else:
-                    error_text = await response.text()
-                    raise WeatherAPIError(f"API error ({response.status}): {error_text}")
-
-    except aiohttp.ClientError as e:
-        raise WeatherAPIError(f"Network error: {str(e)}")
-
-
-def extract_current_weather(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Extract structured weather data from OpenWeatherMap API response.
-
-    Args:
-        data: Raw weather data from API
-
-    Returns:
-        Structured weather information for LLM consumption
-    """
-    try:
-        return {
-            "location": {
-                "city": data.get("name", "Unknown"),
-                "country": data.get("sys", {}).get("country"),
-                "coordinates": {
-                    "latitude": data.get("coord", {}).get("lat"),
-                    "longitude": data.get("coord", {}).get("lon")
-                }
-            },
-            "weather": {
-                "main": data["weather"][0]["main"],
-                "description": data["weather"][0]["description"],
-                "icon": data["weather"][0]["icon"]
-            },
-            "temperature": {
-                "current": round(data["main"]["temp"], 1),
-                "feels_like": round(data["main"]["feels_like"], 1),
-                "min": round(data["main"]["temp_min"], 1),
-                "max": round(data["main"]["temp_max"], 1)
-            },
-            "conditions": {
-                "humidity": data["main"]["humidity"],
-                "pressure": data["main"]["pressure"],
-                "visibility": data.get("visibility")
-            },
-            "wind": {
-                "speed": data.get("wind", {}).get("speed"),
-                "direction": data.get("wind", {}).get("deg")
-            },
-            "timestamp": data["dt"]
-        }
-    except KeyError as e:
-        raise WeatherAPIError(f"Unexpected API response format: missing {e}")
-
-
-def extract_forecast_data(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Extract structured forecast data from OpenWeatherMap API response.
-
-    Args:
-        data: Raw forecast data from API
-
-    Returns:
-        Structured forecast information for LLM consumption
-    """
-    try:
-        location = {
-            "city": data["city"]["name"],
-            "country": data["city"]["country"],
-            "coordinates": {
-                "latitude": data["city"]["coord"]["lat"],
-                "longitude": data["city"]["coord"]["lon"]
-            }
-        }
-
-        # Group by date and extract daily summaries
-        daily_forecasts = {}
-        for item in data["list"]:
-            date = item["dt_txt"].split()[0]
-            if date not in daily_forecasts:
-                daily_forecasts[date] = {
-                    "date": date,
-                    "forecasts": []
-                }
-
-            daily_forecasts[date]["forecasts"].append({
-                "time": item["dt_txt"].split()[1],
-                "weather": {
-                    "main": item["weather"][0]["main"],
-                    "description": item["weather"][0]["description"]
-                },
-                "temperature": round(item["main"]["temp"], 1),
-                "humidity": item["main"]["humidity"],
-                "wind_speed": item.get("wind", {}).get("speed")
-            })
-
-        return {
-            "location": location,
-            "forecast_days": list(daily_forecasts.values())[:5]  # Limit to 5 days
-        }
-
-    except KeyError as e:
-        raise WeatherAPIError(f"Unexpected forecast API response format: missing {e}")
+server = Server("example-tools")
 
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
     """
-    List available weather tools.
-
-    Tool descriptions focus on WHAT the tool does, not HOW to handle missing data.
-    The LLM is smart enough to ask for missing parameters based on the schema.
+    List available tools.
+    Each tool should have a clear name, description, and input schema.
     """
     return [
         types.Tool(
-            name="current_weather",
+            name="date_tool",
             description=(
-                "Get current weather conditions for any city worldwide. "
-                "Returns structured data including temperature, humidity, wind, and conditions."
+                "Get the current date in a human-readable format (Month Day, Year). "
+                "Use this tool when you need to know today's date for scheduling, "
+                "time-sensitive queries, or providing temporal context. "
+                "This tool requires no parameters and always returns the current date."
             ),
             inputSchema={
                 "type": "object",
-                "properties": {
-                    "city": {
-                        "type": "string",
-                        "description": "City name, optionally with country code (e.g., 'London', 'Tokyo', 'Paris, FR')",
-                        "minLength": 1
-                    }
-                },
-                "required": ["city"]
+                "properties": {},
+                "required": []
             }
         ),
         types.Tool(
-            name="weather_forecast",
+            name="web_search",
             description=(
-                "Get a 5-day weather forecast for any city worldwide. "
-                "Returns structured daily forecast data with temperatures and conditions."
+                "Search the web for current information, news, facts, or real-time data. "
+                "This tool is best for queries that require up-to-date information that "
+                "may not be in your training data. Provide specific, focused queries "
+                "for best results. Examples: 'Python 3.12 new features', "
+                "'Tesla stock price today', 'weather in Tokyo'. "
+                "Returns a JSON array of search results with titles, URLs, and snippets."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "city": {
+                    "query": {
                         "type": "string",
-                        "description": "City name, optionally with country code (e.g., 'London', 'Tokyo', 'Paris, FR')",
-                        "minLength": 1
+                        "description": (
+                            "The search query. Should be specific and focused. "
+                            "Use keywords rather than full sentences for better results."
+                        ),
+                        "minLength": 1,
+                        "maxLength": 200
                     }
                 },
-                "required": ["city"]
-            }
-        ),
-        types.Tool(
-            name="weather_by_coordinates",
-            description=(
-                "Get current weather by geographic coordinates (latitude and longitude). "
-                "Returns structured weather data for the exact location."
-            ),
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "latitude": {
-                        "type": "number",
-                        "description": "Latitude coordinate (-90 to 90)",
-                        "minimum": -90,
-                        "maximum": 90
-                    },
-                    "longitude": {
-                        "type": "number",
-                        "description": "Longitude coordinate (-180 to 180)",
-                        "minimum": -180,
-                        "maximum": 180
-                    }
-                },
-                "required": ["latitude", "longitude"]
+                "required": ["query"]
             }
         )
     ]
@@ -266,140 +87,95 @@ async def handle_list_tools() -> list[types.Tool]:
 async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> list[types.TextContent]:
     """
     Handle tool execution requests.
-    Returns structured JSON data that the LLM can interpret and format naturally.
     """
     if arguments is None:
         arguments = {}
 
     try:
-        if name == "current_weather":
-            city = arguments.get("city")
-            if not city:
-                raise ValueError("City parameter is required")
+        if name == "date_tool":
+            result = await date_tool()
+            return [types.TextContent(type="text", text=result)]
 
-            # Make API request
-            raw_data = await make_weather_request("weather", {"q": city})
+        elif name == "web_search":
+            query = arguments.get("query")
+            if not query:
+                raise ValueError("Query parameter is required for web_search")
 
-            # Extract structured data
-            weather_data = extract_current_weather(raw_data)
-
-            # Return as JSON string for LLM to interpret
-            return [types.TextContent(
-                type="text",
-                text=json.dumps(weather_data, indent=2)
-            )]
-
-        elif name == "weather_forecast":
-            city = arguments.get("city")
-            if not city:
-                raise ValueError("City parameter is required")
-
-            # Make API request for 5-day forecast
-            raw_data = await make_weather_request("forecast", {"q": city})
-
-            # Extract structured data
-            forecast_data = extract_forecast_data(raw_data)
-
-            # Return as JSON string for LLM to interpret
-            return [types.TextContent(
-                type="text",
-                text=json.dumps(forecast_data, indent=2)
-            )]
-
-        elif name == "weather_by_coordinates":
-            latitude = arguments.get("latitude")
-            longitude = arguments.get("longitude")
-
-            if latitude is None or longitude is None:
-                raise ValueError("Both latitude and longitude parameters are required")
-
-            # Make API request with coordinates
-            raw_data = await make_weather_request("weather", {
-                "lat": latitude,
-                "lon": longitude
-            })
-
-            # Extract structured data
-            weather_data = extract_current_weather(raw_data)
-
-            # Return as JSON string for LLM to interpret
-            return [types.TextContent(
-                type="text",
-                text=json.dumps(weather_data, indent=2)
-            )]
+            result = await web_search(query)
+            return [types.TextContent(type="text", text=result)]
 
         else:
             raise ValueError(f"Unknown tool: {name}")
 
-    except WeatherAPIError as e:
-        # Return error as structured data too
-        error_data = {"error": str(e), "type": "weather_api_error"}
-        return [types.TextContent(type="text", text=json.dumps(error_data))]
     except Exception as e:
-        # Return error as structured data
-        error_data = {"error": str(e), "type": "execution_error"}
-        return [types.TextContent(type="text", text=json.dumps(error_data))]
+        error_msg = f"Error executing {name}: {str(e)}"
+        return [types.TextContent(type="text", text=error_msg)]
+
+
+async def date_tool() -> str:
+    """
+    Get the current date in a human-readable format.
+
+    Returns:
+        Current date as "Month Day, Year" (e.g., "January 15, 2024")
+    """
+    today = date.today()
+    return today.strftime("%B %d, %Y")
+
+
+async def web_search(query: str) -> str:
+    """
+    Search the web using Tavily and return formatted results as JSON.
+
+    Args:
+        query: The search query string
+
+    Returns:
+        JSON string containing formatted search results
+
+    Raises:
+        Exception: If search fails or API key is invalid
+    """
+    try:
+        search_response = tavily_client.search(query)
+        raw_results = search_response.get('results', [])
+
+        # Format results for better readability (matches cleaned_agent.py)
+        formatted_results = []
+        for result in raw_results:
+            formatted_result = {
+                "title": result.get("title", ""),
+                "url": result.get("url", ""),
+                "content": result.get("content", ""),
+                "score": result.get("score", 0)
+            }
+            formatted_results.append(formatted_result)
+
+        return json.dumps(formatted_results, indent=2)
+
+    except Exception as e:
+        raise Exception(f"Search failed: {str(e)}")
 
 
 async def main():
     """
-    Main function to run the MCP server with SSE transport using Starlette.
+    Main function to run the MCP server.
     """
-    import uvicorn
-    from starlette.requests import Request
-
-    # Create SSE transport
-    sse_transport = SseServerTransport("/messages")
-
-    async def handle_sse(request: Request):
-        """Handle SSE connections"""
-        async with sse_transport.connect_sse(request.scope, request.receive, request._send) as streams:
-            read_stream, write_stream = streams
-            await server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name="weather-tools-sse",
-                    server_version="1.0.0",
-                    capabilities=server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
+    # Run the server using stdio transport
+    async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
+        await server.run(
+            read_stream,
+            write_stream,
+            InitializationOptions(
+                server_name="example-tools",
+                server_version="0.1.0",
+                capabilities=server.get_capabilities(
+                    notification_options=NotificationOptions(),
+                    experimental_capabilities={},
                 ),
-            )
-        # Return empty response since SSE connection is handled above
-        return Response()
-
-    async def handle_messages(request: Request):
-        """Handle POST messages"""
-        response = await sse_transport.handle_post_message(request.scope, request.receive, request._send)
-        return response or Response()
-
-    # Create Starlette routes
-    routes = [
-        Route("/sse", handle_sse, methods=["GET"]),
-        Route("/messages", handle_messages, methods=["POST"]),
-    ]
-
-    # Create Starlette app
-    app = Starlette(routes=routes)
-
-    print("🌤️  Weather MCP Server (SSE) starting...")
-    print("📡 Server URL: http://localhost:8000/sse")
-    print("🔧 Tools available: current_weather, weather_forecast, weather_by_coordinates")
-    print("🌍 Powered by OpenWeatherMap API")
-    print("⏹️  Press Ctrl+C to stop")
-
-    # Run with uvicorn
-    config = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="info")
-    server_instance = uvicorn.Server(config)
-    await server_instance.serve()
+            ),
+        )
 
 
 if __name__ == "__main__":
-    # Install required dependencies:
-    # pip install mcp aiohttp python-dotenv starlette uvicorn
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n👋 Weather MCP Server stopped")
+    asyncio.run(main())
