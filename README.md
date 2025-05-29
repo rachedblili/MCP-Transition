@@ -1,4 +1,4 @@
-# 🚀 From Naive Agent to MCP Mastery
+# Step by Step to MCP Glory
 
 **A Comprehensive Tutorial for Building Model Context Protocol (MCP) Enabled AI Agents**
 
