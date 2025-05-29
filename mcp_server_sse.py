@@ -343,46 +343,49 @@ async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> list[
 
 async def main():
     """
-    Main function to run the MCP server with SSE transport using Starlette.
+    Main function to run the MCP server with SSE transport.
     """
     import uvicorn
-    from starlette.requests import Request
 
     # Create SSE transport
     sse_transport = SseServerTransport("/messages")
 
-    async def handle_sse(request: Request):
-        """Handle SSE connections"""
-        async with sse_transport.connect_sse(request.scope, request.receive, request._send) as streams:
-            read_stream, write_stream = streams
-            await server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name="weather-tools-sse",
-                    server_version="1.0.0",
-                    capabilities=server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
-                ),
-            )
-        # Return empty response since SSE connection is handled above
-        return Response()
+    async def app(scope, receive, send):
+        """Raw ASGI application for MCP SSE"""
+        if scope["type"] == "http":
+            path = scope["path"]
+            method = scope["method"]
 
-    async def handle_messages(request: Request):
-        """Handle POST messages"""
-        response = await sse_transport.handle_post_message(request.scope, request.receive, request._send)
-        return response or Response()
-
-    # Create Starlette routes
-    routes = [
-        Route("/sse", handle_sse, methods=["GET"]),
-        Route("/messages", handle_messages, methods=["POST"]),
-    ]
-
-    # Create Starlette app
-    app = Starlette(routes=routes)
+            if path == "/sse" and method == "GET":
+                # Handle SSE connection
+                async with sse_transport.connect_sse(scope, receive, send) as streams:
+                    read_stream, write_stream = streams
+                    await server.run(
+                        read_stream,
+                        write_stream,
+                        InitializationOptions(
+                            server_name="weather-tools-sse",
+                            server_version="1.0.0",
+                            capabilities=server.get_capabilities(
+                                notification_options=NotificationOptions(),
+                                experimental_capabilities={},
+                            ),
+                        ),
+                    )
+            elif path == "/messages" and method == "POST":
+                # Handle POST messages
+                await sse_transport.handle_post_message(scope, receive, send)
+            else:
+                # 404 for other paths
+                await send({
+                    "type": "http.response.start",
+                    "status": 404,
+                    "headers": [[b"content-type", b"text/plain"]],
+                })
+                await send({
+                    "type": "http.response.body",
+                    "body": b"Not Found",
+                })
 
     print("🌤️  Weather MCP Server (SSE) starting...")
     print("📡 Server URL: http://localhost:8000/sse")
