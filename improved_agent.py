@@ -112,7 +112,7 @@ class Agent:
 
             # Maintain conversation history
             self.messages.extend(result.new_messages())
-            return result.data
+            return result.output
 
         except Exception as e:
             print(f"Error in chat: {e}")
