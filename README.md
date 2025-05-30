@@ -153,7 +153,7 @@ MCP-Transition/
 **Alternative Frameworks:** This is just one of many possible implementations! For the same agent implemented across **8 different frameworks** (LangChain, LangGraph, CrewAI, Llama-Index, OpenAI Assistants, Anthropic, and Atomic Agents), check out my [**Agent Framework Comparison Repository**](https://github.com/rachedblili/AgentExamples). You can use any of these as your starting point for MCP integration.
 
 **Key Concepts:** Basic agent architecture, tool registration, conversation flow
-
+[🎓 Tutorial on this.](./docs/TUTORIAL.md#stage-1--2-from-naive-to-improved)
 ---
 
 ### Stage 2: Improved Architecture
