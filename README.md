@@ -48,7 +48,7 @@ This repository provides a **complete, hands-on journey** from building a simple
 <td>🌐</td>
 <td><strong>Stage 5</strong></td>
 <td><a href="#stage-5-remote-services">Remote Services</a></td>
-<td>SSE transport with weather API integration</td>
+<td>SSE transport with ather API integration</td>
 </tr>
 <tr>
 <td>🌍</td>
@@ -64,7 +64,7 @@ This repository provides a **complete, hands-on journey** from building a simple
 
 ### Prerequisites
 - Python 3.8+
-- API Keys: [Tavily](https://tavily.com) (web search), [OpenWeatherMap](https://openweathermap.org/api) (weather)
+- API Keys: [Tavily](https://tavily.com) (b search), [OpenatherMap](https://openathermap.org/api) (ather)
 - OpenAI API access
 
 ### 1-Minute Setup
@@ -81,7 +81,7 @@ cp .env.example .env
 # Run any stage
 python naive_agent.py           # Stage 1
 python improved_agent.py        # Stage 2
-python mcp_agent_sse.py         # Stage 5 (requires weather server)
+python mcp_agent_sse.py         # Stage 5 (requires ather server)
 ```
 
 ### Environment Variables
@@ -89,7 +89,7 @@ python mcp_agent_sse.py         # Stage 5 (requires weather server)
 # .env file
 OPENAI_API_KEY=your_openai_key_here
 TAVILY_API_KEY=your_tavily_key_here
-OPENWEATHERMAP_API_KEY=your_weather_key_here
+OPENATHERMAP_API_KEY=your_ather_key_here
 ```
 
 ---
@@ -125,7 +125,7 @@ MCP-Transition/
 │   └── mcp_agent_with_standard_client.py # Using official Anthropic MCP SDK
 │
 ├── 🌐 STAGE 5: Remote Services
-│   ├── mcp_server_sse.py                # Remote weather server (SSE transport)
+│   ├── mcp_server_sse.py                # Remote ather server (SSE transport)
 │   └── mcp_agent_sse.py                 # SSE-based agent
 │
 ├── 🌍 STAGE 6: Multi-Transport
@@ -148,7 +148,7 @@ MCP-Transition/
 - Synchronous execution with async workarounds  
 - Direct API calls without abstraction
 
-**Why PydanticAI?** I chose PydanticAI as the starting framework because it provides the cleanest, non-vendor-specific approach to building AI agents. Unlike framework-specific solutions, PydanticAI offers excellent separation between conversation management and tooling, making it ideal for demonstrating MCP integration patterns.
+**Why PydanticAI?** I chose PydanticAI as the starting framework because it provides the cleanest, non-vendor-specific approach to building AI agents. Unlike framework-specific solutions, PydanticAI offers excellent separation beten conversation management and tooling, making it ideal for demonstrating MCP integration patterns.
 
 **Alternative Frameworks:** This is just one of many possible implementations! For the same agent implemented across **8 different frameworks** (LangChain, LangGraph, CrewAI, Llama-Index, OpenAI Assistants, Anthropic, and Atomic Agents), check out my [**Agent Framework Comparison Repository**](https://github.com/rachedblili/AgentExamples). You can use any of these as your starting point for MCP integration.
 
@@ -189,7 +189,7 @@ MCP-Transition/
 ### Stage 5: Remote Services
 **Files:** `mcp_server_sse.py`, `mcp_agent_sse.py`
 - HTTP-based MCP server with Server-Sent Events
-- Real-world API integration (OpenWeatherMap)
+- Real-world API integration (OpenatherMap)
 - Remote deployment capabilities
 
 **Key Concepts:** SSE transport, remote services, external API integration
@@ -212,25 +212,25 @@ MCP-Transition/
 <tr><th>Stage</th><th>Tools</th><th>Transport</th><th>Location</th></tr>
 <tr>
 <td>1-2</td>
-<td>📅 Date, 🔍 Web Search</td>
+<td>📅 Date, 🔍 b Search</td>
 <td>Direct calls</td>
 <td>Local</td>
 </tr>
 <tr>
 <td>3-4</td>
-<td>📅 Date, 🔍 Web Search</td>
+<td>📅 Date, 🔍 b Search</td>
 <td>stdio MCP</td>
 <td>Local subprocess</td>
 </tr>
 <tr>
 <td>5</td>
-<td>🌤️ Current Weather, 📊 Forecast, 🗺️ Coordinates</td>
+<td>🌤️ Current ather, 📊 Forecast, 🗺️ Coordinates</td>
 <td>SSE MCP</td>
 <td>Remote HTTP server</td>
 </tr>
 <tr>
 <td>6</td>
-<td>📅 Date, 🔍 Web Search, 🌤️ Weather Tools</td>
+<td>📅 Date, 🔍 b Search, 🌤️ Weather Tools</td>
 <td>stdio + SSE MCP</td>
 <td>Local + Remote</td>
 </tr>
@@ -238,28 +238,9 @@ MCP-Transition/
 
 ---
 
-## 🎓 Learning Path Recommendations
-
-### **Beginner**: Start with the Basics
-1. Run Stages 1-2 to understand agent fundamentals
-2. Read [Setup Guide](./docs/SETUP.md) for environment configuration
-3. Follow [Tutorial](./docs/TUTORIAL.md) through Stage 3
-
-### **Intermediate**: Dive into MCP
-1. Complete Stages 3-4 to master MCP basics
-2. Study [MCP Protocol Guide](./docs/MCP_CONCEPTS.md)
-3. Experiment with Stage 5 for remote capabilities
-
-### **Advanced**: Build Production Systems
-1. Master Stage 6 multi-transport patterns
-2. Review [Deployment Guide](./docs/DEPLOYMENT.md)
-3. Extend with your own MCP servers and tools
-
----
-
 ## 🤝 Contributing
 
-We welcome contributions! Here are some ways to help:
+I welcome contributions! Here are some ways to help:
 
 - **🐛 Bug Reports**: Found an issue? [Open an issue](../../issues)
 - **💡 Feature Requests**: Ideas for new stages or improvements
@@ -296,7 +277,7 @@ python -m pytest tests/  # If tests are available
 ### Related Technologies
 - **[Pydantic AI](https://ai.pydantic.dev/)** - AI agent framework used in examples
 - **[OpenAI API](https://platform.openai.com/docs)** - Language model integration
-- **[Tavily API](https://docs.tavily.com/)** - Web search capabilities
+- **[Tavily API](https://docs.tavily.com/)** - b search capabilities
 
 ---
 
