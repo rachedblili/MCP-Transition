@@ -153,7 +153,8 @@ MCP-Transition/
 **Alternative Frameworks:** This is just one of many possible implementations! For the same agent implemented across **8 different frameworks** (LangChain, LangGraph, CrewAI, Llama-Index, OpenAI Assistants, Anthropic, and Atomic Agents), check out my [**Agent Framework Comparison Repository**](https://github.com/rachedblili/AgentExamples). You can use any of these as your starting point for MCP integration.
 
 **Key Concepts:** Basic agent architecture, tool registration, conversation flow
-[🎓 Tutorial on this.](./docs/TUTORIAL.md#stage-1--2-from-naive-to-improved)
+
+
 ---
 
 ### Stage 2: Improved Architecture
@@ -163,6 +164,8 @@ MCP-Transition/
 - Cleaner code structure and formatting
 
 **Key Concepts:** Async programming, code quality, maintainable architecture
+
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-1--2-from-naive-to-improved)
 
 ---
 
@@ -174,6 +177,8 @@ MCP-Transition/
 
 **Key Concepts:** MCP protocol, stdio transport, JSON-RPC, tool discovery
 
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-2--3-introducing-mcp-protocol)
+
 ---
 
 ### Stage 4: Official Library
@@ -183,6 +188,8 @@ MCP-Transition/
 - Production-ready protocol compliance
 
 **Key Concepts:** Official libraries vs custom implementation, code simplification
+
+[🎓 Tutorial Link](./docs/TUTORIAL.md##stage-3--4-official-library-adoption)
 
 ---
 
@@ -194,6 +201,8 @@ MCP-Transition/
 
 **Key Concepts:** SSE transport, remote services, external API integration
 
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-4--5-remote-services-with-sse)
+
 ---
 
 ### Stage 6: Multi-Transport
@@ -203,6 +212,8 @@ MCP-Transition/
 - Unified tool interface and session management
 
 **Key Concepts:** Multi-transport architecture, tool composition, distributed systems
+
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-5--6-multi-transport-architecture)
 
 ---
 
