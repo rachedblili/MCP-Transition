@@ -11,6 +11,7 @@ This comprehensive guide walks through each stage of the MCP transition, highlig
 3. [Stage 3 → 4: Official Library Adoption](#stage-3--4-official-library-adoption)
 4. [Stage 4 → 5: Remote Services with SSE](#stage-4--5-remote-services-with-sse)
 5. [Stage 5 → 6: Multi-Transport Architecture](#stage-5--6-multi-transport-architecture)
+6. [Stage 5 → 7: SSE to Streamable HTTP Migration](#stage-5--7-sse-to-streamable-http-migration)
 
 ---
 
@@ -626,6 +627,150 @@ def _update_system_prompt(self) -> None:
 ```
 
 **💡 Learning Point**: The agent understands tool distribution, which can inform its decision-making about tool usage.
+
+
+---
+
+## Stage 5 → 7: SSE to Streamable HTTP Migration
+
+**Focus**: Transport evolution, single endpoint architecture, and protocol modernization
+
+### Transport Evolution
+
+```mermaid
+flowchart TB
+    subgraph sse ["SSE Transport (Stage 5)"]
+        A[Agent] --> B["/sse + /messages"]
+        B --> C[SSE Server]
+        C --> D[Weather Tools]
+    end
+    
+    subgraph stream ["Streamable HTTP (Stage 7)"]
+        E[Agent] --> F["/mcp endpoint"]
+        F --> G[Streamable Server]
+        G --> H[Same Weather Tools]
+    end
+    
+    style sse fill:#fff3e0
+    style stream fill:#e8f5e8
+```
+
+### 🔧 Server Transport Changes
+
+#### **Transport Initialization**
+
+**❌ SSE Transport:**
+```python
+# Dual-endpoint complexity
+from mcp.server.sse import SseServerTransport
+
+sse_transport = SseServerTransport("/messages")
+
+if path == "/sse" and method == "GET":
+    async with sse_transport.connect_sse(scope, receive, send) as streams:
+        read_stream, write_stream = streams
+        await server.run(read_stream, write_stream, init_options)
+elif path == "/messages" and method == "POST":
+    await sse_transport.handle_post_message(scope, receive, send)
+```
+
+**✅ Streamable HTTP Transport:**
+```python
+# Single-endpoint simplicity
+from mcp.server.streamable_http import StreamableHTTPServerTransport
+
+streamable_transport = StreamableHTTPServerTransport(
+    mcp_session_id=None,
+    is_json_response_enabled=False,
+    event_store=None
+)
+
+if path == "/mcp" and method in ["POST", "GET", "DELETE"]:
+    await streamable_transport.handle_request(scope, receive, send)
+```
+
+**💡 Learning Point**: Streamable HTTP uses a single endpoint `/mcp` instead of separate `/sse` and `/messages` endpoints.
+
+#### **Architecture Pattern**
+
+```python
+# Streamable HTTP: Connect pattern + HTTP handling
+async with streamable_transport.connect() as (read_stream, write_stream):
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(server_instance.serve())  # HTTP server
+        tg.create_task(server.run(               # MCP session
+            read_stream, write_stream, init_options
+        ))
+```
+
+**💡 Learning Point**: The server uses both `handle_request()` for HTTP and `connect()` for MCP session management.
+
+### 🔧 Client Migration Changes
+
+#### **Connection Pattern**
+
+**❌ SSE Client:**
+```python
+from mcp.client.sse import sse_client
+
+sse_transport = await self.exit_stack.enter_async_context(
+    sse_client("http://localhost:8000/sse")
+)
+read_stream, write_stream = sse_transport  # 2 values
+```
+
+**✅ Streamable HTTP Client:**
+```python
+from mcp.client.streamable_http import streamablehttp_client
+
+streamable_transport = await self.exit_stack.enter_async_context(
+    streamablehttp_client("http://localhost:8000/mcp")
+)
+read_stream, write_stream, get_session_id = streamable_transport  # 3 values
+```
+
+**💡 Learning Point**: Streamable HTTP client returns an additional `get_session_id` callback but uses the same `ClientSession` interface.
+
+### 📊 Migration Summary
+
+| Aspect | SSE Transport | Streamable HTTP |
+|--------|---------------|-----------------|
+| **Server Import** | `mcp.server.sse` | `mcp.server.streamable_http` |
+| **Client Import** | `mcp.client.sse` | `mcp.client.streamable_http` |
+| **Endpoints** | `/sse` + `/messages` | `/mcp` only |
+| **Client Returns** | 2 values | 3 values |
+| **Tool Handlers** | Unchanged | Unchanged |
+| **Session Logic** | Unchanged | Unchanged |
+
+**💡 Key Takeaway**: MCP's excellent transport abstraction means the core agent logic (tools, sessions, discovery) remains identical across transport changes.
+
+---
+
+## 🎯 Complete Learning Journey
+
+After completing all 7 stages, you've mastered:
+
+### 1. **Foundation Skills** (Stages 1-2)
+- Async programming patterns
+- Code quality and maintainability
+- Agent architecture principles
+
+### 2. **MCP Protocol Mastery** (Stages 3-4)
+- Protocol implementation from scratch
+- Official library adoption patterns
+- Tool discovery and session management
+
+### 3. **Production Architecture** (Stages 5-7)
+- Remote service integration
+- Transport layer abstraction
+- Multi-server composition
+- Protocol evolution and migration
+
+### 4. **Real-world Patterns** (All Stages)
+- Error handling strategies
+- Structured data design
+- Infrastructure compatibility
+- Deployment considerations
 
 ---
 

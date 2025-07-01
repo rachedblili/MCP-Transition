@@ -56,6 +56,12 @@ This repository provides a **complete, hands-on journey** from building a simple
 <td><a href="#stage-6-multi-transport">Multi-Transport</a></td>
 <td>Unified agent with local + remote tools</td>
 </tr>
+<tr>
+<td>🔄</td>
+<td><strong>Stage 7</strong></td>
+<td><a href="#stage-7-streamable-http-migration">Streamable HTTP Migration</a></td>
+<td>SSE to Streamable HTTP transport upgrade</td>
+</tr>
 </table>
 
 ---
@@ -82,6 +88,7 @@ cp .env.example .env
 python naive_agent.py           # Stage 1
 python improved_agent.py        # Stage 2
 python mcp_agent_sse.py         # Stage 5 (requires weather server)
+python mcp_agent_streamable.py  # Stage 7 (requires streamable server)
 ```
 
 ### Environment Variables
@@ -130,6 +137,10 @@ MCP-Transition/
 │
 ├── 🌍 STAGE 6: Multi-Transport
 │   └── mcp_agent_multi_transport.py     # Unified local + remote agent
+│
+├── 🔄 STAGE 7: Streamable HTTP Migration
+│   ├── mcp_server_streamable.py         # Weather server (Streamable HTTP transport)
+│   └── mcp_agent_streamable.py          # Streamable HTTP-based agent
 │
 └── docs/                                 # Detailed documentation
     ├── SETUP.md                         # Installation guide
@@ -206,6 +217,17 @@ MCP-Transition/
 
 ---
 
+### Stage 7: Streamable HTTP Migration
+**Files:** `mcp_server_streamable.py`, `mcp_agent_streamable.py`
+- Migration from SSE to Streamable HTTP transport
+- Single endpoint design (/mcp vs /sse + /messages)
+- Improved scalability and infrastructure compatibility
+- Future-proof transport implementation
+
+**Key Concepts:** Transport migration, protocol evolution, backward compatibility patterns
+
+---
+
 ## 🛠️ Available Tools by Stage
 
 <table>
@@ -233,6 +255,12 @@ MCP-Transition/
 <td>📅 Date, 🔍 Web Search, 🌤️ Weather Tools</td>
 <td>stdio + SSE MCP</td>
 <td>Local + Remote</td>
+</tr>
+<tr>
+<td>7</td>
+<td>🌤️ Current Weather, 📊 Forecast, 🗺️ Coordinates</td>
+<td>Streamable HTTP MCP</td>
+<td>Remote HTTP server</td>
 </tr>
 </table>
 
