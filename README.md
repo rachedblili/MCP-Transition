@@ -48,7 +48,7 @@ This repository provides a **complete, hands-on journey** from building a simple
 <td>🌐</td>
 <td><strong>Stage 5</strong></td>
 <td><a href="#stage-5-remote-services">Remote Services</a></td>
-<td>SSE transport with weather API integration</td>
+<td>SSE transport with ather API integration</td>
 </tr>
 <tr>
 <td>🌍</td>
@@ -175,6 +175,8 @@ MCP-Transition/
 
 **Key Concepts:** Async programming, code quality, maintainable architecture
 
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-1--2-from-naive-to-improved)
+
 ---
 
 ### Stage 3: MCP Foundation
@@ -184,6 +186,8 @@ MCP-Transition/
 - Tool discovery and JSON-RPC 2.0 messaging
 
 **Key Concepts:** MCP protocol, stdio transport, JSON-RPC, tool discovery
+
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-2--3-introducing-mcp-protocol)
 
 ---
 
@@ -195,6 +199,8 @@ MCP-Transition/
 
 **Key Concepts:** Official libraries vs custom implementation, code simplification
 
+[🎓 Tutorial Link](./docs/TUTORIAL.md##stage-3--4-official-library-adoption)
+
 ---
 
 ### Stage 5: Remote Services
@@ -205,6 +211,8 @@ MCP-Transition/
 
 **Key Concepts:** SSE transport, remote services, external API integration
 
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-4--5-remote-services-with-sse)
+
 ---
 
 ### Stage 6: Multi-Transport
@@ -214,6 +222,8 @@ MCP-Transition/
 - Unified tool interface and session management
 
 **Key Concepts:** Multi-transport architecture, tool composition, distributed systems
+
+[🎓 Tutorial Link](./docs/TUTORIAL.md#stage-5--6-multi-transport-architecture)
 
 ---
 
@@ -263,25 +273,6 @@ MCP-Transition/
 <td>Remote HTTP server</td>
 </tr>
 </table>
-
----
-
-## 🎓 Learning Path Recommendations
-
-### **Beginner**: Start with the Basics
-1. Run Stages 1-2 to understand agent fundamentals
-2. Read [Setup Guide](./docs/SETUP.md) for environment configuration
-3. Follow [Tutorial](./docs/TUTORIAL.md) through Stage 3
-
-### **Intermediate**: Dive into MCP
-1. Complete Stages 3-4 to master MCP basics
-2. Study [MCP Protocol Guide](./docs/MCP_CONCEPTS.md)
-3. Experiment with Stage 5 for remote capabilities
-
-### **Advanced**: Build Production Systems
-1. Master Stage 6 multi-transport patterns
-2. Review [Deployment Guide](./docs/DEPLOYMENT.md)
-3. Extend with your own MCP servers and tools
 
 ---
 
